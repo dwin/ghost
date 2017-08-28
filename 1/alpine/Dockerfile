@@ -1,6 +1,7 @@
 # https://docs.ghost.org/supported-node-versions/
 # https://github.com/nodejs/LTS
 FROM node:6-alpine
+LABEL maintainer "Darwin Smith II <dwin@dlsmi.com>"
 
 # grab su-exec for easy step-down from root
 RUN apk add --no-cache 'su-exec>=0.2'
@@ -13,6 +14,8 @@ ENV NPM_CONFIG_LOGLEVEL warn
 ENV NODE_ENV production
 ENV GHOST_CLI_VERSION 1.1.1
 ENV GHOST_VERSION 1.7.1
+ENV DB_PASS default
+ENV GHOST_URL http://localhost:2368
 
 RUN npm install -g "ghost-cli@$GHOST_CLI_VERSION" knex-migrator@latest
 
@@ -27,7 +30,7 @@ RUN set -ex; \
 	\
 # Tell Ghost to listen on all ips and not prompt for additional configuration
 	cd "$GHOST_INSTALL"; \
-	su-exec node ghost config --ip 0.0.0.0 --port 2368 --no-prompt --db sqlite3 --url http://localhost:2368 --dbpath "$GHOST_CONTENT/data/ghost.db"; \
+	su-exec node ghost config --ip 0.0.0.0 --port 2368 --no-prompt --db mysql --dbhost mariadb --dbuser ghost --dbpass "$DB_PASS" --dbname ghost_production --url "$GHOST_URL" ; \
 	su-exec node ghost config paths.contentPath "$GHOST_CONTENT"; \
 	\
 # need to save initial content for pre-seeding empty volumes
